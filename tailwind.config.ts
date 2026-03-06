@@ -6,7 +6,7 @@ export default {
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
 		"./app/**/*.{ts,tsx}",
-		"./src/**/*.{ts,tsx}",
+		"./src/**/*.{ts,tsx}"
 	],
 	prefix: "",
 	theme: {
@@ -18,7 +18,17 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				oswald: ['Oswald', 'sans-serif'],
+				rubik: ['Rubik', 'sans-serif'],
+				mono: ['Share Tech Mono', 'monospace'],
+			},
 			colors: {
+				neon: '#BD9053',
+				'neon-dim': 'rgba(189, 144, 83, 0.15)',
+				'dark-bg': '#0a0a0a',
+				'dark-card': '#111111',
+				'dark-card2': '#161616',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
@@ -70,25 +80,38 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
+				'fade-in': {
+					from: { opacity: '0', transform: 'translateY(10px)' },
+					to: { opacity: '1', transform: 'translateY(0)' }
+				},
+				'slide-up': {
+					from: { opacity: '0', transform: 'translateY(30px)' },
+					to: { opacity: '1', transform: 'translateY(0)' }
+				},
+				'pulse-neon': {
+					'0%, 100%': { boxShadow: '0 0 10px rgba(189, 144, 83, 0.3)' },
+					'50%': { boxShadow: '0 0 25px rgba(189, 144, 83, 0.7)' }
+				},
+				'flicker': {
+					'0%, 95%, 100%': { opacity: '1' },
+					'96%': { opacity: '0.8' },
+					'98%': { opacity: '0.6' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.4s ease-out forwards',
+				'slide-up': 'slide-up 0.5s ease-out forwards',
+				'pulse-neon': 'pulse-neon 2s ease-in-out infinite',
+				'flicker': 'flicker 3s linear infinite',
 			}
 		}
 	},
