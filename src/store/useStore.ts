@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { fetchMe, steamLoginRedirect, logoutApi, setSession, getSession, clearSession } from '@/lib/api';
 
 export interface User {
   id: string;
@@ -130,43 +131,34 @@ export function getContests() { return globalContests; }
 export function getStaff() { return globalStaff; }
 export function getPromos() { return globalPromos; }
 
+// Реальный логин через Steam OpenID
 export function steamLogin() {
-  globalUser = {
-    id: '1',
-    steamId: '76561198123456789',
-    name: 'SurvivorX',
-    avatar: 'https://avatars.steamstatic.com/b5bd56c1aa4644a474a2e4972be27ef9e82e517e_full.jpg',
-    balance: 750,
-    role: 'player',
-    banned: false,
-    joinDate: '2025-08-15',
-    playtime: 1240,
-    purchases: [
-      { id: '1', productName: 'AK-74', price: 299, date: '2026-02-10', status: 'delivered' },
-      { id: '2', productName: 'VIP Статус (30 дней)', price: 199, date: '2026-01-15', status: 'delivered' },
-    ]
-  };
-  notify();
+  steamLoginRedirect();
 }
 
-export function steamLoginAdmin() {
-  globalUser = {
-    id: '0',
-    steamId: '76561198000000001',
-    name: 'Hugas',
-    avatar: '',
-    balance: 99999,
-    role: 'admin',
-    banned: false,
-    joinDate: '2024-01-01',
-    playtime: 9999,
-    purchases: []
-  };
-  notify();
+// Загрузить пользователя из сессии (вызывается при старте приложения)
+export async function loadUserFromSession() {
+  const user = await fetchMe();
+  if (user) {
+    globalUser = user;
+    notify();
+  }
 }
 
-export function logout() {
+// Установить сессию из URL (после редиректа со Steam)
+export async function handleSteamCallback(sessionId: string) {
+  setSession(sessionId);
+  const user = await fetchMe();
+  if (user) {
+    globalUser = user;
+    notify();
+  }
+}
+
+export async function logout() {
+  await logoutApi();
   globalUser = null;
+  clearSession();
   notify();
 }
 
@@ -220,10 +212,20 @@ export function buyCart() {
   return true;
 }
 
+// topUpBalance теперь через ЮКасса — только для обновления локального стейта после успешной оплаты
 export function topUpBalance(amount: number) {
   if (!globalUser) return;
   globalUser = { ...globalUser, balance: globalUser.balance + amount };
   notify();
+}
+
+// Обновить баланс из БД после оплаты
+export async function refreshUserBalance() {
+  const user = await fetchMe();
+  if (user && globalUser) {
+    globalUser = { ...globalUser, balance: user.balance };
+    notify();
+  }
 }
 
 export function addProduct(product: Omit<Product, 'id'>) {
@@ -292,6 +294,8 @@ export function applyPromo(code: string): PromoCode | null {
   return null;
 }
 
+let sessionLoaded = false;
+
 export function useStore() {
   const [, forceUpdate] = useState(0);
 
@@ -299,6 +303,11 @@ export function useStore() {
 
   useEffect(() => {
     listeners.add(updater);
+    // Загружаем пользователя из сессии один раз при монтировании
+    if (!sessionLoaded && !globalUser) {
+      sessionLoaded = true;
+      loadUserFromSession();
+    }
     return () => { listeners.delete(updater); };
   }, [updater]);
 
@@ -311,7 +320,6 @@ export function useStore() {
     staff: globalStaff,
     promos: globalPromos,
     steamLogin,
-    steamLoginAdmin,
     logout,
     addToCart,
     removeFromCart,
@@ -320,6 +328,7 @@ export function useStore() {
     getCartTotal,
     buyCart,
     topUpBalance,
+    refreshUserBalance,
     addProduct,
     updateProduct,
     deleteProduct,

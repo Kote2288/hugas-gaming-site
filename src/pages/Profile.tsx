@@ -1,11 +1,56 @@
-import { useState } from 'react';
-import { useStore, steamLogin, topUpBalance } from '@/store/useStore';
+import { useState, useEffect } from 'react';
+import { useStore } from '@/store/useStore';
+import { handleSteamCallback, refreshUserBalance } from '@/store/useStore';
+import { createPayment } from '@/lib/api';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 
 export default function Profile() {
-  const { user } = useStore();
+  const { user, steamLogin } = useStore();
   const [topUpAmount, setTopUpAmount] = useState('');
   const [showTopUp, setShowTopUp] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Обрабатываем редирект после Steam авторизации (?session=...)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const session = params.get('session');
+    const payment = params.get('payment');
+
+    if (session) {
+      handleSteamCallback(session).then(() => {
+        navigate('/profile', { replace: true });
+      });
+    }
+
+    if (payment === 'success') {
+      setPaymentSuccess(true);
+      refreshUserBalance();
+      navigate('/profile', { replace: true });
+      setTimeout(() => setPaymentSuccess(false), 5000);
+    }
+  }, [location.search, navigate]);
+
+  const handleTopUp = async () => {
+    const amount = parseInt(topUpAmount);
+    if (!amount || amount < 10) {
+      setPaymentError('Минимальная сумма — 10₽');
+      return;
+    }
+    setPaymentLoading(true);
+    setPaymentError('');
+    const result = await createPayment(amount);
+    setPaymentLoading(false);
+    if (result?.confirmation_url) {
+      window.location.href = result.confirmation_url;
+    } else {
+      setPaymentError('Ошибка создания платежа. Попробуй снова.');
+    }
+  };
 
   if (!user) {
     return (
@@ -17,6 +62,9 @@ export default function Profile() {
           <button onClick={steamLogin} className="btn-neon-filled px-8 py-4 flex items-center gap-3 mx-auto">
             <span className="text-xl">♨</span>ВОЙТИ ЧЕРЕЗ STEAM
           </button>
+          <p className="text-gray-700 text-xs mt-4 font-mono-tech">
+            Вы будете перенаправлены на Steam и вернётесь обратно
+          </p>
         </div>
       </div>
     );
@@ -28,7 +76,7 @@ export default function Profile() {
     admin: { label: 'АДМИНИСТРАТОР', color: 'text-red-400 border-red-500/50' },
     owner: { label: 'ВЛАДЕЛЕЦ', color: 'text-neon border-neon' },
   };
-  const badge = roleBadge[user.role];
+  const badge = roleBadge[user.role] || roleBadge.player;
 
   return (
     <div className="min-h-screen bg-dark-bg pt-20 pb-16">
@@ -37,6 +85,17 @@ export default function Profile() {
           <div className="font-mono-tech text-xs text-neon/60 tracking-widest mb-2">// ЛИЧНЫЙ КАБИНЕТ</div>
           <h1 className="font-oswald text-4xl text-white">ПРОФИЛЬ</h1>
         </div>
+
+        {/* Успешная оплата */}
+        {paymentSuccess && (
+          <div className="mb-6 border border-green-500/40 bg-green-900/20 p-4 flex items-center gap-3">
+            <Icon name="CheckCircle" size={20} className="text-green-400 shrink-0" />
+            <div>
+              <div className="font-oswald text-green-400">ОПЛАТА ПРОШЛА УСПЕШНО!</div>
+              <div className="font-mono-tech text-xs text-green-600">Баланс пополнен. Средства зачислены на ваш счёт.</div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Card */}
@@ -66,34 +125,19 @@ export default function Profile() {
                   <div className="font-oswald text-xl text-neon">{user.balance}₽</div>
                 </div>
                 <div className="bg-dark-bg p-3">
-                  <div className="font-mono-tech text-xs text-gray-600 mb-1">ВРЕМЯ</div>
-                  <div className="font-oswald text-xl text-white">{user.playtime}ч</div>
+                  <div className="font-mono-tech text-xs text-gray-600 mb-1">ПОКУПОК</div>
+                  <div className="font-oswald text-xl text-white">{user.purchases?.length || 0}</div>
                 </div>
               </div>
 
               <button onClick={() => setShowTopUp(true)} className="w-full btn-neon-filled py-3 flex items-center justify-center gap-2">
-                <Icon name="Plus" size={16} />
+                <Icon name="CreditCard" size={16} />
                 ПОПОЛНИТЬ БАЛАНС
               </button>
 
               <div className="mt-4 font-mono-tech text-xs text-gray-700">
                 Игрок с {new Date(user.joinDate).toLocaleDateString('ru-RU')}
               </div>
-            </div>
-
-            {/* Stats */}
-            <div className="card-dark p-5 mt-4">
-              <div className="font-mono-tech text-xs text-neon/60 tracking-widest mb-4">// СТАТИСТИКА</div>
-              {[
-                { label: 'Покупок', value: user.purchases.length },
-                { label: 'Дата регистрации', value: new Date(user.joinDate).toLocaleDateString('ru-RU') },
-                { label: 'Наигранных часов', value: `${user.playtime}ч` },
-              ].map(s => (
-                <div key={s.label} className="flex justify-between items-center py-2 border-b border-neon/10 last:border-0">
-                  <span className="text-gray-500 text-sm">{s.label}</span>
-                  <span className="font-oswald text-white">{s.value}</span>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -102,18 +146,18 @@ export default function Profile() {
             <div className="card-dark p-6 mb-4">
               <div className="flex items-center justify-between mb-4">
                 <div className="font-mono-tech text-xs text-neon/60 tracking-widest">// ИСТОРИЯ ПОКУПОК</div>
-                <span className="font-mono-tech text-xs text-gray-600">{user.purchases.length} покупок</span>
+                <span className="font-mono-tech text-xs text-gray-600">{user.purchases?.length || 0} покупок</span>
               </div>
 
-              {user.purchases.length === 0 ? (
+              {!user.purchases?.length ? (
                 <div className="text-center py-10">
                   <Icon name="ShoppingBag" size={40} className="mx-auto mb-3 text-gray-700" />
                   <p className="text-gray-600 font-oswald">Пока нет покупок</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {user.purchases.map(p => (
-                    <div key={p.id} className="flex items-center justify-between p-3 border border-neon/10 hover:border-neon/20 transition-all">
+                  {user.purchases.map((p, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 border border-neon/10 hover:border-neon/20 transition-all">
                       <div>
                         <div className="font-oswald text-white">{p.productName}</div>
                         <div className="font-mono-tech text-xs text-gray-600">{p.date}</div>
@@ -132,7 +176,6 @@ export default function Profile() {
               )}
             </div>
 
-            {/* How to get items */}
             <div className="card-dark p-6">
               <div className="font-mono-tech text-xs text-neon/60 tracking-widest mb-4">// КАК ПОЛУЧИТЬ КУПЛЕННЫЕ ТОВАРЫ</div>
               <div className="space-y-3">
@@ -172,24 +215,39 @@ export default function Profile() {
             <input
               value={topUpAmount}
               onChange={e => setTopUpAmount(e.target.value)}
-              placeholder="Своя сумма в рублях"
-              className="w-full bg-dark-bg border border-neon/20 px-4 py-3 font-mono-tech text-white placeholder:text-gray-600 focus:border-neon outline-none mb-4"
+              placeholder="Или введите сумму вручную"
+              type="number"
+              min="10"
+              max="100000"
+              className="w-full bg-dark-bg border border-neon/20 px-4 py-3 font-mono-tech text-sm text-white placeholder:text-gray-600 focus:border-neon outline-none mb-4"
             />
-            <p className="text-gray-600 text-xs font-mono-tech mb-4">
-              * Оплата через ЮКасса, СБП и карты. Пополнение мгновенное.
-            </p>
+            {paymentError && (
+              <div className="text-red-400 font-mono-tech text-xs mb-4">{paymentError}</div>
+            )}
+            <div className="text-xs text-gray-600 font-mono-tech mb-4">
+              Оплата через ЮКасса (банковская карта, SBP, ЮMoney). Безопасно и мгновенно.
+            </div>
             <button
-              onClick={() => {
-                if (topUpAmount && Number(topUpAmount) > 0) {
-                  topUpBalance(Number(topUpAmount));
-                  setShowTopUp(false);
-                  setTopUpAmount('');
-                }
-              }}
-              className="w-full btn-neon-filled py-3"
+              onClick={handleTopUp}
+              disabled={paymentLoading || !topUpAmount}
+              className="w-full btn-neon-filled py-3 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              ПОПОЛНИТЬ {topUpAmount ? `${topUpAmount}₽` : ''}
+              {paymentLoading ? (
+                <>
+                  <Icon name="Loader" size={16} className="animate-spin" />
+                  СОЗДАНИЕ ПЛАТЕЖА...
+                </>
+              ) : (
+                <>
+                  <Icon name="CreditCard" size={16} />
+                  ОПЛАТИТЬ {topUpAmount ? `${topUpAmount}₽` : ''}
+                </>
+              )}
             </button>
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <span className="text-gray-700 text-xs font-mono-tech">Безопасная оплата:</span>
+              <span className="text-gray-600 text-xs font-bold">ЮКасса</span>
+            </div>
           </div>
         </div>
       )}

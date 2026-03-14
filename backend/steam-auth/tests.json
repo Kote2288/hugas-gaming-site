@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "Login redirect to Steam",
+      "method": "GET",
+      "path": "/?action=login",
+      "expectedStatus": 302
+    },
+    {
+      "name": "Me without session returns 401",
+      "method": "GET",
+      "path": "/?action=me",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "no session"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

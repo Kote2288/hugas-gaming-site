@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {
+      "name": "Create without session returns 401",
+      "method": "POST",
+      "path": "/?action=create",
+      "body": {"amount": 100, "session_id": ""},
+      "expectedStatus": 401,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Status not found",
+      "method": "GET",
+      "path": "/?action=status&payment_id=nonexistent-id-test",
+      "expectedStatus": 404,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

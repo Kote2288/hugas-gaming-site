@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
-import { useStore, steamLogin, steamLoginAdmin, logout } from '@/store/useStore';
+import { useStore } from '@/store/useStore';
 
 const navLinks = [
   { to: '/', label: 'Главная' },
@@ -14,7 +14,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const { user, cart } = useStore();
+  const { user, cart, steamLogin, logout } = useStore();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAuthMenu, setShowAuthMenu] = useState(false);
