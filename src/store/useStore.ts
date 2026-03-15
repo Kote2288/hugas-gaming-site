@@ -1,5 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { fetchMe, steamLoginRedirect, logoutApi, setSession, getSession, clearSession } from '@/lib/api';
+import { useState, useEffect, useCallback } from "react";
+import {
+  fetchMe,
+  steamLoginRedirect,
+  logoutApi,
+  setSession,
+  getSession,
+  clearSession,
+} from "@/lib/api";
 
 export interface User {
   id: string;
@@ -7,7 +14,7 @@ export interface User {
   name: string;
   avatar: string;
   balance: number;
-  role: 'player' | 'moderator' | 'admin' | 'owner';
+  role: "player" | "moderator" | "admin" | "owner";
   banned: boolean;
   joinDate: string;
   playtime: number;
@@ -19,7 +26,14 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  category: 'weapons' | 'armor' | 'food' | 'medical' | 'vehicles' | 'base' | 'vip';
+  category:
+    | "weapons"
+    | "armor"
+    | "food"
+    | "medical"
+    | "vehicles"
+    | "base"
+    | "vip";
   image: string;
   inStock: boolean;
   popular?: boolean;
@@ -36,7 +50,7 @@ export interface Purchase {
   productName: string;
   price: number;
   date: string;
-  status: 'delivered' | 'pending';
+  status: "delivered" | "pending";
 }
 
 export interface NewsItem {
@@ -44,7 +58,7 @@ export interface NewsItem {
   title: string;
   content: string;
   date: string;
-  category: 'update' | 'event' | 'news';
+  category: "update" | "event" | "news";
   image?: string;
 }
 
@@ -52,7 +66,7 @@ export interface StaffMember {
   id: string;
   name: string;
   steamId: string;
-  role: 'moderator' | 'admin';
+  role: "moderator" | "admin";
   addedDate: string;
 }
 
@@ -70,44 +84,196 @@ export interface PromoCode {
   id: string;
   code: string;
   discount: number;
-  type: 'percent' | 'fixed';
+  type: "percent" | "fixed";
   usesLeft: number;
   active: boolean;
 }
 
 const MOCK_PRODUCTS: Product[] = [
-  { id: '1', name: 'AK-74', description: 'Легендарный автомат Калашникова. Надёжен в любых условиях.', price: 299, category: 'weapons', image: '🔫', inStock: true, popular: true },
-  { id: '2', name: 'M4A1', description: 'Американская штурмовая винтовка. Точная и скорострельная.', price: 399, category: 'weapons', image: '🔫', inStock: true },
-  { id: '3', name: 'Бронежилет Tier 3', description: 'Защита от пуль калибра 5.56. Выдержит несколько попаданий.', price: 249, category: 'armor', image: '🛡️', inStock: true, popular: true },
-  { id: '4', name: 'VIP Статус (30 дней)', description: 'Особый статус на сервере: префикс, приоритетный слот, бонус +15% к опыту.', price: 199, category: 'vip', image: '⭐', inStock: true, discount: 20 },
-  { id: '5', name: 'Стартовый набор', description: 'Еда, вода, аптечки и базовое оружие для быстрого старта.', price: 149, category: 'food', image: '🎒', inStock: true },
-  { id: '6', name: 'Медицинский набор', description: 'Морфин, кровь, бинты. Полный комплект выживальщика.', price: 99, category: 'medical', image: '💊', inStock: true },
-  { id: '7', name: 'Внедорожник', description: 'Полностью заправленный и исправный транспорт.', price: 599, category: 'vehicles', image: '🚗', inStock: false },
-  { id: '8', name: 'Комплект для базы', description: 'Материалы для строительства базы: стены, ворота, замки.', price: 349, category: 'base', image: '🏗️', inStock: true },
+  {
+    id: "1",
+    name: "AK-74",
+    description: "Легендарный автомат Калашникова. Надёжен в любых условиях.",
+    price: 299,
+    category: "weapons",
+    image: "🔫",
+    inStock: true,
+    popular: true,
+  },
+  {
+    id: "2",
+    name: "M4A1",
+    description: "Американская штурмовая винтовка. Точная и скорострельная.",
+    price: 399,
+    category: "weapons",
+    image: "🔫",
+    inStock: true,
+  },
+  {
+    id: "3",
+    name: "Бронежилет Tier 3",
+    description: "Защита от пуль калибра 5.56. Выдержит несколько попаданий.",
+    price: 249,
+    category: "armor",
+    image: "🛡️",
+    inStock: true,
+    popular: true,
+  },
+  {
+    id: "4",
+    name: "VIP Статус (30 дней)",
+    description:
+      "Особый статус на сервере: префикс, приоритетный слот, бонус +15% к опыту.",
+    price: 199,
+    category: "vip",
+    image: "⭐",
+    inStock: true,
+    discount: 20,
+  },
+  {
+    id: "5",
+    name: "Стартовый набор",
+    description: "Еда, вода, аптечки и базовое оружие для быстрого старта.",
+    price: 149,
+    category: "food",
+    image: "🎒",
+    inStock: true,
+  },
+  {
+    id: "6",
+    name: "Медицинский набор",
+    description: "Морфин, кровь, бинты. Полный комплект выживальщика.",
+    price: 99,
+    category: "medical",
+    image: "💊",
+    inStock: true,
+  },
+  {
+    id: "7",
+    name: "Внедорожник",
+    description: "Полностью заправленный и исправный транспорт.",
+    price: 599,
+    category: "vehicles",
+    image: "🚗",
+    inStock: false,
+  },
+  {
+    id: "8",
+    name: "Комплект для базы",
+    description: "Материалы для строительства базы: стены, ворота, замки.",
+    price: 349,
+    category: "base",
+    image: "🏗️",
+    inStock: true,
+  },
 ];
 
 const MOCK_NEWS: NewsItem[] = [
-  { id: '1', title: 'Обновление 1.28 — Новое оружие и карта', content: 'Вышло крупное обновление DayZ 1.28! Добавлено 5 новых видов оружия, улучшена физика транспорта и переработаны военные локации на Chernarus.', date: '2026-03-05', category: 'update' },
-  { id: '2', title: 'Турнир "Выживший" — регистрация открыта', content: 'Открываем регистрацию на ежемесячный турнир! Призовой фонд — 5000 рублей на баланс магазина. 32 участника, 3 раунда, один победитель.', date: '2026-03-03', category: 'event' },
-  { id: '3', title: 'Технические работы 06.03', content: 'Сервер будет недоступен с 04:00 до 06:00 МСК. Проводим оптимизацию базы данных и установку нового оборудования.', date: '2026-03-01', category: 'news' },
-  { id: '4', title: 'Wipe + Ивент "Первая кровь"', content: 'После вайпа запускаем трёхдневный ивент! Удвоенный лут в военных зонах, специальные тайники и уникальные предметы для первых 10 выживших.', date: '2026-02-28', category: 'event' },
+  {
+    id: "1",
+    title: "Обновление 1.28 — Новое оружие и карта",
+    content:
+      "Вышло крупное обновление DayZ 1.28! Добавлено 5 новых видов оружия, улучшена физика транспорта и переработаны военные локации на Livonia.",
+    date: "2026-03-05",
+    category: "update",
+  },
+  {
+    id: "2",
+    title: 'Турнир "Выживший" — регистрация открыта',
+    content:
+      "Открываем регистрацию на ежемесячный турнир! Призовой фонд — 5000 рублей на баланс магазина. 32 участника, 3 раунда, один победитель.",
+    date: "2026-03-03",
+    category: "event",
+  },
+  {
+    id: "3",
+    title: "Технические работы 06.03",
+    content:
+      "Сервер будет недоступен с 04:00 до 06:00 МСК. Проводим оптимизацию базы данных и установку нового оборудования.",
+    date: "2026-03-01",
+    category: "news",
+  },
+  {
+    id: "4",
+    title: 'Wipe + Ивент "Первая кровь"',
+    content:
+      "После вайпа запускаем трёхдневный ивент! Удвоенный лут в военных зонах, специальные тайники и уникальные предметы для первых 10 выживших.",
+    date: "2026-02-28",
+    category: "event",
+  },
 ];
 
 const MOCK_CONTESTS: Contest[] = [
-  { id: '1', title: 'Турнир "Выживший"', description: 'PvP турнир 32 участников. Выжить любой ценой.', prize: '5000₽ на баланс', endDate: '2026-03-15', participants: 24, active: true },
-  { id: '2', title: 'Скриншот месяца', description: 'Лучший скриншот с сервера получает VIP на 3 месяца.', prize: 'VIP × 3 месяца', endDate: '2026-03-31', participants: 47, active: true },
-  { id: '3', title: 'Конкурс баз', description: 'Самая красивая и укреплённая база по итогам голосования.', prize: '2000₽ + набор для базы', endDate: '2026-04-01', participants: 12, active: true },
+  {
+    id: "1",
+    title: 'Турнир "Выживший"',
+    description: "PvP турнир 32 участников. Выжить любой ценой.",
+    prize: "5000₽ на баланс",
+    endDate: "2026-03-15",
+    participants: 24,
+    active: true,
+  },
+  {
+    id: "2",
+    title: "Скриншот месяца",
+    description: "Лучший скриншот с сервера получает VIP на 3 месяца.",
+    prize: "VIP × 3 месяца",
+    endDate: "2026-03-31",
+    participants: 47,
+    active: true,
+  },
+  {
+    id: "3",
+    title: "Конкурс баз",
+    description: "Самая красивая и укреплённая база по итогам голосования.",
+    prize: "2000₽ + набор для базы",
+    endDate: "2026-04-01",
+    participants: 12,
+    active: true,
+  },
 ];
 
 const MOCK_STAFF: StaffMember[] = [
-  { id: '1', name: 'Hugas', steamId: '76561198000000001', role: 'admin', addedDate: '2024-01-01' },
-  { id: '2', name: 'DarkWolf', steamId: '76561198000000002', role: 'moderator', addedDate: '2024-06-15' },
-  { id: '3', name: 'NightOwl', steamId: '76561198000000003', role: 'moderator', addedDate: '2025-01-20' },
+  {
+    id: "1",
+    name: "Hugas",
+    steamId: "76561198000000001",
+    role: "admin",
+    addedDate: "2024-01-01",
+  },
+  {
+    id: "2",
+    name: "DarkWolf",
+    steamId: "76561198000000002",
+    role: "moderator",
+    addedDate: "2024-06-15",
+  },
+  {
+    id: "3",
+    name: "NightOwl",
+    steamId: "76561198000000003",
+    role: "moderator",
+    addedDate: "2025-01-20",
+  },
 ];
 
 const MOCK_PROMO: PromoCode[] = [
-  { id: '1', code: 'DAYZ2026', discount: 15, type: 'percent', usesLeft: 100, active: true },
-  { id: '2', code: 'WELCOME50', discount: 50, type: 'fixed', usesLeft: 50, active: true },
+  {
+    id: "1",
+    code: "DAYZ2026",
+    discount: 15,
+    type: "percent",
+    usesLeft: 100,
+    active: true,
+  },
+  {
+    id: "2",
+    code: "WELCOME50",
+    discount: 50,
+    type: "fixed",
+    usesLeft: 50,
+    active: true,
+  },
 ];
 
 let globalUser: User | null = null;
@@ -120,16 +286,30 @@ let globalPromos: PromoCode[] = [...MOCK_PROMO];
 const listeners: Set<() => void> = new Set();
 
 function notify() {
-  listeners.forEach(fn => fn());
+  listeners.forEach((fn) => fn());
 }
 
-export function getUser() { return globalUser; }
-export function getCart() { return globalCart; }
-export function getProducts() { return globalProducts; }
-export function getNews() { return globalNews; }
-export function getContests() { return globalContests; }
-export function getStaff() { return globalStaff; }
-export function getPromos() { return globalPromos; }
+export function getUser() {
+  return globalUser;
+}
+export function getCart() {
+  return globalCart;
+}
+export function getProducts() {
+  return globalProducts;
+}
+export function getNews() {
+  return globalNews;
+}
+export function getContests() {
+  return globalContests;
+}
+export function getStaff() {
+  return globalStaff;
+}
+export function getPromos() {
+  return globalPromos;
+}
 
 // Реальный логин через Steam OpenID
 export function steamLogin() {
@@ -163,9 +343,11 @@ export async function logout() {
 }
 
 export function addToCart(product: Product) {
-  const existing = globalCart.find(i => i.product.id === product.id);
+  const existing = globalCart.find((i) => i.product.id === product.id);
   if (existing) {
-    globalCart = globalCart.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+    globalCart = globalCart.map((i) =>
+      i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i,
+    );
   } else {
     globalCart = [...globalCart, { product, quantity: 1 }];
   }
@@ -173,13 +355,18 @@ export function addToCart(product: Product) {
 }
 
 export function removeFromCart(productId: string) {
-  globalCart = globalCart.filter(i => i.product.id !== productId);
+  globalCart = globalCart.filter((i) => i.product.id !== productId);
   notify();
 }
 
 export function updateCartQty(productId: string, qty: number) {
-  if (qty <= 0) { removeFromCart(productId); return; }
-  globalCart = globalCart.map(i => i.product.id === productId ? { ...i, quantity: qty } : i);
+  if (qty <= 0) {
+    removeFromCart(productId);
+    return;
+  }
+  globalCart = globalCart.map((i) =>
+    i.product.id === productId ? { ...i, quantity: qty } : i,
+  );
   notify();
 }
 
@@ -190,7 +377,9 @@ export function clearCart() {
 
 export function getCartTotal() {
   return globalCart.reduce((sum, i) => {
-    const price = i.product.discount ? i.product.price * (1 - i.product.discount / 100) : i.product.price;
+    const price = i.product.discount
+      ? i.product.price * (1 - i.product.discount / 100)
+      : i.product.price;
     return sum + price * i.quantity;
   }, 0);
 }
@@ -199,14 +388,20 @@ export function buyCart() {
   if (!globalUser) return false;
   const total = getCartTotal();
   if (globalUser.balance < total) return false;
-  const newPurchases: Purchase[] = globalCart.map(i => ({
+  const newPurchases: Purchase[] = globalCart.map((i) => ({
     id: Date.now().toString() + i.product.id,
     productName: i.product.name,
-    price: i.product.discount ? i.product.price * (1 - i.product.discount / 100) : i.product.price,
-    date: new Date().toISOString().split('T')[0],
-    status: 'pending' as const,
+    price: i.product.discount
+      ? i.product.price * (1 - i.product.discount / 100)
+      : i.product.price,
+    date: new Date().toISOString().split("T")[0],
+    status: "pending" as const,
   }));
-  globalUser = { ...globalUser, balance: globalUser.balance - total, purchases: [...(globalUser.purchases || []), ...newPurchases] };
+  globalUser = {
+    ...globalUser,
+    balance: globalUser.balance - total,
+    purchases: [...(globalUser.purchases || []), ...newPurchases],
+  };
   globalCart = [];
   notify();
   return true;
@@ -228,66 +423,79 @@ export async function refreshUserBalance() {
   }
 }
 
-export function addProduct(product: Omit<Product, 'id'>) {
+export function addProduct(product: Omit<Product, "id">) {
   const newProd: Product = { ...product, id: Date.now().toString() };
   globalProducts = [...globalProducts, newProd];
   notify();
 }
 
 export function updateProduct(id: string, updates: Partial<Product>) {
-  globalProducts = globalProducts.map(p => p.id === id ? { ...p, ...updates } : p);
+  globalProducts = globalProducts.map((p) =>
+    p.id === id ? { ...p, ...updates } : p,
+  );
   notify();
 }
 
 export function deleteProduct(id: string) {
-  globalProducts = globalProducts.filter(p => p.id !== id);
+  globalProducts = globalProducts.filter((p) => p.id !== id);
   notify();
 }
 
-export function addNews(item: Omit<NewsItem, 'id'>) {
+export function addNews(item: Omit<NewsItem, "id">) {
   globalNews = [{ ...item, id: Date.now().toString() }, ...globalNews];
   notify();
 }
 
 export function deleteNews(id: string) {
-  globalNews = globalNews.filter(n => n.id !== id);
+  globalNews = globalNews.filter((n) => n.id !== id);
   notify();
 }
 
 export function banPlayer(userId: string) {
-  if (globalUser?.id === userId) { globalUser = { ...globalUser, banned: true }; }
+  if (globalUser?.id === userId) {
+    globalUser = { ...globalUser, banned: true };
+  }
   notify();
 }
 
-export function addStaff(member: Omit<StaffMember, 'id'>) {
+export function addStaff(member: Omit<StaffMember, "id">) {
   globalStaff = [...globalStaff, { ...member, id: Date.now().toString() }];
   notify();
 }
 
 export function removeStaff(id: string) {
-  globalStaff = globalStaff.filter(s => s.id !== id);
+  globalStaff = globalStaff.filter((s) => s.id !== id);
   notify();
 }
 
 export function adminTopUp(userId: string, amount: number) {
-  if (globalUser?.id === userId) { globalUser = { ...globalUser, balance: globalUser.balance + amount }; }
+  if (globalUser?.id === userId) {
+    globalUser = { ...globalUser, balance: globalUser.balance + amount };
+  }
   notify();
 }
 
-export function addPromo(promo: Omit<PromoCode, 'id'>) {
+export function addPromo(promo: Omit<PromoCode, "id">) {
   globalPromos = [...globalPromos, { ...promo, id: Date.now().toString() }];
   notify();
 }
 
 export function togglePromo(id: string) {
-  globalPromos = globalPromos.map(p => p.id === id ? { ...p, active: !p.active } : p);
+  globalPromos = globalPromos.map((p) =>
+    p.id === id ? { ...p, active: !p.active } : p,
+  );
   notify();
 }
 
 export function applyPromo(code: string): PromoCode | null {
-  const promo = globalPromos.find(p => p.code.toUpperCase() === code.toUpperCase() && p.active && p.usesLeft > 0);
+  const promo = globalPromos.find(
+    (p) =>
+      p.code.toUpperCase() === code.toUpperCase() && p.active && p.usesLeft > 0,
+  );
   if (promo) {
-    globalPromos = globalPromos.map(p => p.id === promo.id ? { ...p, usesLeft: p.usesLeft - 1 } : p);
+    globalPromos = globalPromos.map((p) =>
+      p.id === promo.id ? { ...p, usesLeft: p.usesLeft - 1 } : p,
+    );
     notify();
     return promo;
   }
@@ -299,7 +507,7 @@ let sessionLoaded = false;
 export function useStore() {
   const [, forceUpdate] = useState(0);
 
-  const updater = useCallback(() => forceUpdate(n => n + 1), []);
+  const updater = useCallback(() => forceUpdate((n) => n + 1), []);
 
   useEffect(() => {
     listeners.add(updater);
@@ -308,7 +516,9 @@ export function useStore() {
       sessionLoaded = true;
       loadUserFromSession();
     }
-    return () => { listeners.delete(updater); };
+    return () => {
+      listeners.delete(updater);
+    };
   }, [updater]);
 
   return {
