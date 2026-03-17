@@ -33,7 +33,7 @@ export default function Navbar() {
             <div className="font-oswald font-bold text-white text-lg leading-none tracking-wider animate-flicker">
               HUGAS <span className="neon-text">GAMING</span>
             </div>
-            <div className="font-mono-tech text-neon/60 text-xs tracking-widest">DAYZ 1.28 // LIVONIA</div>
+            <div className="font-mono-tech text-neon/60 text-xs tracking-widest">DAYZ 1.28 // CHERNARUS</div>
           </div>
         </Link>
 
