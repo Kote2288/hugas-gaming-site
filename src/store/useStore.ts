@@ -236,7 +236,7 @@ const MOCK_CONTESTS: Contest[] = [
 const MOCK_STAFF: StaffMember[] = [
   {
     id: "1",
-    name: "Hugas",
+    name: "Odium",
     steamId: "76561198000000001",
     role: "admin",
     addedDate: "2024-01-01",

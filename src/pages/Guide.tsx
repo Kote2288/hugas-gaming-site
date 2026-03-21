@@ -24,8 +24,8 @@ const SECTIONS = [
       },
       {
         step: "04",
-        title: "Найди Hugas Gaming",
-        desc: 'В строке поиска введи "Hugas" или вручную введи IP: play.hugasgaming.ru:2302',
+        title: "Найди Odium Dayz",
+        desc: 'В строке поиска введи "Odium" или вручную введи IP: Odium:2222',
       },
       {
         step: "05",
@@ -126,7 +126,7 @@ const SECTIONS = [
       {
         step: "05",
         title: "Группа — сила",
-        desc: "В группе из 3+ человек шансы выжить кратно выше. Найди напарников в Discord Hugas Gaming.",
+        desc: "В группе из 3+ человек шансы выжить кратно выше. Найди напарников в Discord Odium Dayz.",
       },
     ],
   },
@@ -160,7 +160,7 @@ export default function Guide() {
                 // БЫСТРОЕ ПОДКЛЮЧЕНИЕ
               </div>
               <div className="font-oswald text-2xl text-white">
-                Hugas Gaming — DayZ 1.28
+                Odium Server — DayZ 1.28
               </div>
             </div>
             <div className="flex flex-col gap-2">
@@ -169,7 +169,7 @@ export default function Guide() {
                   IP:
                 </span>
                 <span className="font-mono-tech text-neon">
-                  play.hugasgaming.ru:2302
+                  play.odium.ru:2302
                 </span>
                 <button
                   className="text-gray-500 hover:text-neon"

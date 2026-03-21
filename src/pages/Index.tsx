@@ -139,7 +139,7 @@ export default function Index() {
             СЕРВЕР АКТИВЕН // 47/60 ИГРОКОВ
           </div>
           <h1 className="font-oswald text-6xl md:text-8xl lg:text-9xl font-black text-white mb-4 tracking-tight animate-slide-up leading-none">
-            HUGAS
+            Odium
             <br />
             <span className="neon-text animate-flicker">GAMING</span>
           </h1>
@@ -148,7 +148,7 @@ export default function Index() {
             <span className="animate-pulse">_</span>
           </div>
           <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-            Уникальный DayZ Standalone 1.28 сервер на карте Livonia.
+            Уникальный DayZ Standalone 1.28 сервер на карте Cherno.
             Пост-апокалипсис без компромиссов. PvP/PvE, базостроительство,
             экономика и ежемесячные события.
           </p>
@@ -189,12 +189,12 @@ export default function Index() {
               IP СЕРВЕРА:
             </span>
             <span className="font-mono-tech text-neon text-sm tracking-wider">
-              play.hugasgaming.ru:2302
+              play.odium.ru:2302
             </span>
             <button
               className="text-gray-500 hover:text-neon transition-colors"
               onClick={() =>
-                navigator.clipboard?.writeText("play.hugasgaming.ru:2302")
+                navigator.clipboard?.writeText("play.odium.ru:2302")
               }
             >
               <Icon name="Copy" size={14} />
@@ -307,7 +307,7 @@ export default function Index() {
                   напарников, тех. поддержка.
                 </p>
                 <a
-                  href="https://discord.gg/hugas"
+                  href="https://discord.gg/Bk8bPHF7QC"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-oswald tracking-wider transition-all"
@@ -322,7 +322,7 @@ export default function Index() {
                     ОНЛАЙН
                   </div>
                   {[
-                    "Hugas 👑",
+                    "Odium 👑",
                     "DarkWolf 🛡",
                     "SurvivorX ⚔",
                     "Ghost_Rider",
