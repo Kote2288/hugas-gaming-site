@@ -13,7 +13,7 @@ export default function Footer() {
                 </span>
               </div>
               <span className="font-oswald text-white font-bold">
-                HUGAS GAMING
+                Odium GAMING
               </span>
             </div>
             <p className="text-gray-600 text-xs leading-relaxed font-mono-tech">
@@ -66,7 +66,7 @@ export default function Footer() {
         </div>
         <div className="border-t border-neon/10 pt-4 flex flex-col md:flex-row items-center justify-between gap-2">
           <p className="font-mono-tech text-xs text-gray-700">
-            © 2026 Hugas Gaming. All rights reserved.
+            © 2026 Odium Server. All rights reserved.
           </p>
           <p className="font-mono-tech text-xs text-gray-700">
             DayZ and related marks are trademarks of Bohemia Interactive a.s.
